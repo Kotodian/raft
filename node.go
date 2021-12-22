@@ -231,7 +231,7 @@ func (r *RaftNode) timerHeartbeat() {
 	for {
 		r.mu.Lock()
 		if r.role == Leader {
-			timeElapsed := (time.Now().UnixNano() - r.lastResetElectionTimer) / time.Hour.Milliseconds()
+			timeElapsed := (time.Now().UnixNano() - r.lastResetHeartbeatTimer) / time.Hour.Milliseconds()
 			if timeElapsed > r.timeoutHeartbeat {
 				r.persist()
 				DPrintf("[timerHeartbeat] raft %d heartbeat timeout | current term: %d | current state: %d\n",
