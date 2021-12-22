@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -43,6 +44,9 @@ type RaftNode struct {
 	me int
 	// role 角色 如上 2A
 	role Role
+
+	// 是否死亡
+	dead int32
 
 	// 当前的任期 2A
 	currentTerm int
@@ -125,7 +129,7 @@ func (r *RaftNode) Start(command interface{}) (index int, term int, isLeader boo
 }
 
 func (r *RaftNode) mainLoop() {
-	for {
+	for !r.isKilled() {
 		select {
 		case <-r.timerElectionChan:
 			r.startElection()
@@ -434,6 +438,15 @@ func (r *RaftNode) checkN() {
 			}
 		}
 	}
+}
+
+func (r *RaftNode) Kill() {
+	atomic.StoreInt32(&r.dead, 1)
+}
+
+func (r *RaftNode) isKilled() bool {
+	z := atomic.LoadInt32(&r.dead)
+	return z == 1
 }
 
 func DPrintf(format string, a ...interface{}) (n int, err error) {
